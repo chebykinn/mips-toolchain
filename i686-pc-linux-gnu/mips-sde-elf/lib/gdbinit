@@ -1,0 +1,37 @@
+python
+class UseOtherQemu(gdb.Function):
+  def __init__(self):
+    super(UseOtherQemu, self).__init__("cs_use_other_qemu")
+  def invoke(self):
+    return not gdb.is_big_endian()
+UseOtherQemu()
+end
+
+define target qemu 
+  if $cs_use_other_qemu()
+    if $argc == 0
+      target remote | mips-sde-elf-qemu-system-el -S -p stdio --semihosting --serial null --monitor null -kernel /dev/null -M mipssim --cpu 24Kf
+    else
+      if $argc == 1
+        target remote | mips-sde-elf-qemu-system-el -S -p stdio --semihosting --serial null --monitor null -kernel /dev/null -M mipssim --cpu $arg0
+      else
+        echo Too many arguments.\n
+      end
+    end
+  else
+  if $argc == 0
+    target remote | mips-sde-elf-qemu-system -S -p stdio --semihosting --serial null --monitor null -kernel /dev/null -M mipssim --cpu 24Kf
+  else
+    if $argc == 1
+      target remote | mips-sde-elf-qemu-system -S -p stdio --semihosting --serial null --monitor null -kernel /dev/null -M mipssim --cpu $arg0
+    else
+      echo Too many arguments.\n
+    end
+  end
+  end
+end
+document target qemu
+Use the QEMU simulator to run the program being debugged.
+You can optionally provide an argument that specifies the CPU QEMU
+should emulate.
+end
